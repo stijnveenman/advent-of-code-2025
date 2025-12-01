@@ -41,7 +41,25 @@ pub fn part_one(input: &str) -> Option<u64> {
 pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
 
-    None
+    let mut dial = 50;
+    let mut crossings = 0;
+
+    for item in input {
+        if item < 0 && dial == 0 {
+            // was already counted
+            crossings -= 1;
+        }
+        dial += item;
+
+        crossings += dial.div_euclid(100).abs();
+        dial = dial.rem_euclid(100);
+
+        if item < 0 && dial == 0 {
+            crossings += 1;
+        }
+    }
+
+    Some(crossings as u64)
 }
 
 #[cfg(test)]
@@ -57,6 +75,26 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(6));
+    }
+
+    #[test]
+    fn extra() {
+        assert_eq!(part_two("R1000"), Some(10));
+    }
+
+    #[test]
+    fn extra_negative() {
+        assert_eq!(part_two("L1000"), Some(10));
+    }
+
+    #[test]
+    fn foo() {
+        assert_eq!(part_two("L50\nR100"), Some(2));
+    }
+
+    #[test]
+    fn bar() {
+        assert_eq!(part_two("R50\nL100"), Some(2));
     }
 }
