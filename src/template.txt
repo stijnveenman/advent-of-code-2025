@@ -1,10 +1,20 @@
 advent_of_code::solution!(%DAY_NUMBER%);
+#[allow(unused_imports)]
+use advent_of_code::prelude::*;
+
+fn parse_input(input: &str) -> String {
+    input.to_string()
+}
 
 pub fn part_one(input: &str) -> Option<u64> {
+    let input = parse_input(input);
+
     None
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
+    let input = parse_input(input);
+
     None
 }
 

@@ -23,6 +23,7 @@ version = "0.12.0"
 dependencies = [
  "chrono",
  "dhat",
+ "iter_tools",
  "pico-args",
  "tinyjson",
 ]
@@ -105,6 +106,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "clone_dyn_types"
+version = "0.43.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5be5cab647cdb7972547601689c7175c7bdb4971071691fe13b4b68755a5599e"
+
+[[package]]
 name = "core-foundation-sys"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -125,6 +132,12 @@ dependencies = [
  "serde_json",
  "thousands",
 ]
+
+[[package]]
+name = "either"
+version = "1.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "gimli"
@@ -153,6 +166,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f31827a206f56af32e590ba56d5d2d085f558508192593743f16b2306495269f"
 dependencies = [
  "cc",
+]
+
+[[package]]
+name = "iter_tools"
+version = "0.43.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e3a2444798c5e9be78700ac18b7a5e325345cad692ee18f229eb8dac940c341"
+dependencies = [
+ "clone_dyn_types",
+ "itertools",
+]
+
+[[package]]
+name = "itertools"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
+dependencies = [
+ "either",
 ]
 
 [[package]]
