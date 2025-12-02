@@ -40,10 +40,40 @@ pub fn part_one(input: &str) -> Option<u64> {
     )
 }
 
+fn is_invalid_id(input: &str) -> bool {
+    let len = input.len();
+    for i in 1..len {
+        if !len.is_multiple_of(i) {
+            continue;
+        }
+
+        let repeats = len / i;
+        let compare = input[0..i].repeat(repeats);
+
+        if input == compare {
+            return true;
+        }
+    }
+    false
+}
+
 pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
 
-    None
+    Some(
+        input
+            .into_iter()
+            .map(|input| {
+                input
+                    .filter(|input| {
+                        let s = input.to_string();
+
+                        is_invalid_id(&s)
+                    })
+                    .sum::<usize>()
+            })
+            .sum::<usize>() as u64,
+    )
 }
 
 #[cfg(test)]
@@ -64,6 +94,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(4174379265));
     }
 }
