@@ -2,8 +2,8 @@ advent_of_code::solution!(%DAY_NUMBER%);
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
 
-fn parse_input(input: &str) -> String {
-    input.to_string()
+fn parse_input(input: &str) {
+    // TODO: parse input
 }
 
 pub fn part_one(input: &str) -> Option<u64> {
