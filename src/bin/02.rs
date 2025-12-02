@@ -62,7 +62,7 @@ pub fn part_two(input: &str) -> Option<u64> {
 
     Some(
         input
-            .into_iter()
+            .into_par_iter()
             .map(|input| {
                 input
                     .filter(|input| {
