@@ -3,16 +3,20 @@ advent_of_code::solution!(3);
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
 
-fn parse_input(input: &str) -> Vec<Vec<u32>> {
+fn parse_input(input: &str) -> Vec<Vec<u64>> {
     input
         .lines()
-        .map(|line| line.chars().map(|c| c.to_digit(10).unwrap()).collect_vec())
+        .map(|line| {
+            line.chars()
+                .map(|c| c.to_digit(10).unwrap() as u64)
+                .collect_vec()
+        })
         .collect_vec()
 }
 
 #[allow(dead_code)]
-fn max_two_slow(input: &[u32]) -> (u32, u32) {
-    let mut max = u32::MIN;
+fn max_two_slow(input: &[u64]) -> (u64, u64) {
+    let mut max = u64::MIN;
     let mut max_v = (0, 0);
     for i in 0..input.len() {
         let left = input[i];
@@ -29,7 +33,7 @@ fn max_two_slow(input: &[u32]) -> (u32, u32) {
     max_v
 }
 
-fn max_two(input: &[u32]) -> (u32, u32) {
+fn max_two(input: &[u64]) -> (u64, u64) {
     let mut left = input[0];
     let mut right = input[1];
 
@@ -44,6 +48,44 @@ fn max_two(input: &[u32]) -> (u32, u32) {
     }
 
     (left, right)
+}
+
+const CURSORS: usize = 12;
+fn max_of(input: &[u64]) -> u64 {
+    let mut cursors = input[0..CURSORS].to_vec();
+
+    println!("{}", cursors.iter().map(|s| s.to_string()).join(""));
+    for i in 1..input.len() {
+        let current = input[i];
+
+        for c in 0..CURSORS {
+            if i + CURSORS - c > input.len() {
+                continue;
+            }
+            dbg!(current, c, cursors[c]);
+
+            if current > cursors[c] {
+                println!("copy");
+                for cn in c..CURSORS {
+                    dbg!(input[i + cn - c], i, cn - c);
+                    cursors[cn] = input[i + cn - c];
+                }
+                break;
+            }
+        }
+
+        println!(
+            "{} {current}",
+            cursors.iter().map(|s| s.to_string()).join("")
+        );
+    }
+
+    cursors
+        .into_iter()
+        .rev()
+        .enumerate()
+        .map(|i| 10u64.pow(i.0 as u32) * i.1)
+        .sum()
 }
 
 pub fn part_one(input: &str) -> Option<u64> {
@@ -61,14 +103,14 @@ pub fn part_one(input: &str) -> Option<u64> {
                 max_two(i)
             })
             .map(|i| i.0 * 10 + i.1)
-            .sum::<u32>() as u64,
+            .sum::<u64>() as u64,
     )
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
 
-    None
+    Some(input.iter().map(|i| dbg!(max_of(i))).sum::<u64>() as u64)
 }
 
 #[cfg(test)]
@@ -82,8 +124,13 @@ mod tests {
     }
 
     #[test]
-    fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+    fn foo() {
+        assert_eq!(part_two("818181911112111"), Some(888911112111))
     }
+
+    // #[test]
+    // fn test_part_two() {
+    //     let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+    //     assert_eq!(result, Some(3121910778619));
+    // }
 }
