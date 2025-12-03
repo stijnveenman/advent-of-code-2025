@@ -52,26 +52,24 @@ fn max_two(input: &[u64]) -> (u64, u64) {
 
 const CURSORS: usize = 12;
 fn max_of(input: &[u64]) -> u64 {
-    println!("{} <--", input.iter().map(|s| s.to_string()).join(""));
     let mut cursors = (0..CURSORS).collect_vec();
 
-    println!("{}", cursors.iter().map(|s| input[*s].to_string()).join(""));
     for i in 1..input.len() {
         let current = input[i];
-        println!(
-            "{} {current}",
-            cursors.iter().map(|s| input[*s].to_string()).join("")
-        );
 
         for c in 0..CURSORS {
             if i + CURSORS - c > input.len() {
                 continue;
             }
 
+            if cursors[c] > i {
+                continue;
+            }
+
             if current > input[cursors[c]] {
-                for cn in c..CURSORS {
+                (c..CURSORS).for_each(|cn| {
                     cursors[cn] = i + cn - c;
-                }
+                });
                 break;
             }
         }
@@ -107,7 +105,7 @@ pub fn part_one(input: &str) -> Option<u64> {
 pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
 
-    Some(input.iter().map(|i| dbg!(max_of(i))).sum::<u64>() as u64)
+    Some(input.iter().map(|i| max_of(i)).sum::<u64>() as u64)
 }
 
 #[cfg(test)]
@@ -125,9 +123,9 @@ mod tests {
         assert_eq!(part_two("818181911112111"), Some(888911112111))
     }
 
-    // #[test]
-    // fn test_part_two() {
-    //     let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-    //     assert_eq!(result, Some(3121910778619));
-    // }
+    #[test]
+    fn test_part_two() {
+        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        assert_eq!(result, Some(3121910778619));
+    }
 }
