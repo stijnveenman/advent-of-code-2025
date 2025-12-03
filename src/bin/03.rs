@@ -52,39 +52,36 @@ fn max_two(input: &[u64]) -> (u64, u64) {
 
 const CURSORS: usize = 12;
 fn max_of(input: &[u64]) -> u64 {
-    let mut cursors = input[0..CURSORS].to_vec();
+    println!("{} <--", input.iter().map(|s| s.to_string()).join(""));
+    let mut cursors = (0..CURSORS).collect_vec();
 
-    println!("{}", cursors.iter().map(|s| s.to_string()).join(""));
+    println!("{}", cursors.iter().map(|s| input[*s].to_string()).join(""));
     for i in 1..input.len() {
         let current = input[i];
+        println!(
+            "{} {current}",
+            cursors.iter().map(|s| input[*s].to_string()).join("")
+        );
 
         for c in 0..CURSORS {
             if i + CURSORS - c > input.len() {
                 continue;
             }
-            dbg!(current, c, cursors[c]);
 
-            if current > cursors[c] {
-                println!("copy");
+            if current > input[cursors[c]] {
                 for cn in c..CURSORS {
-                    dbg!(input[i + cn - c], i, cn - c);
-                    cursors[cn] = input[i + cn - c];
+                    cursors[cn] = i + cn - c;
                 }
                 break;
             }
         }
-
-        println!(
-            "{} {current}",
-            cursors.iter().map(|s| s.to_string()).join("")
-        );
     }
 
     cursors
         .into_iter()
         .rev()
         .enumerate()
-        .map(|i| 10u64.pow(i.0 as u32) * i.1)
+        .map(|i| 10u64.pow(i.0 as u32) * input[i.1])
         .sum()
 }
 
