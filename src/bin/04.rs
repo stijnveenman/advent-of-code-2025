@@ -1,0 +1,36 @@
+advent_of_code::solution!(4);
+#[allow(unused_imports)]
+use advent_of_code::prelude::*;
+
+fn parse_input(input: &str) {
+    // TODO: parse input
+}
+
+pub fn part_one(input: &str) -> Option<u64> {
+    let input = parse_input(input);
+
+    None
+}
+
+pub fn part_two(input: &str) -> Option<u64> {
+    let input = parse_input(input);
+
+    None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part_one() {
+        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
+        assert_eq!(result, Some(13));
+    }
+
+    #[test]
+    fn test_part_two() {
+        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        assert_eq!(result, None);
+    }
+}

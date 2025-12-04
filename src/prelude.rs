@@ -1,2 +1,2 @@
-pub use iter_tools::Itertools;
+pub use itertools::Itertools;
 pub use rayon::prelude::*;
