@@ -25,9 +25,33 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let input = parse_input(input);
+    let mut grid = parse_input(input);
+    let mut removed = 0;
 
-    None
+    loop {
+        let rolls = grid
+            .keys()
+            .filter(|p| grid.get(p).is_some_and(|c| c == '@'))
+            .filter(|p| {
+                p.full_neighbours()
+                    .iter()
+                    .filter(|n| grid.get(n).is_some_and(|c| c == '@'))
+                    .count()
+                    < 4
+            })
+            .collect_vec();
+
+        removed += rolls.len();
+        if rolls.is_empty() {
+            break;
+        }
+
+        for roll in rolls {
+            grid.set(&roll, '.');
+        }
+    }
+
+    Some(removed as u64)
 }
 
 #[cfg(test)]
@@ -43,6 +67,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(43));
     }
 }
