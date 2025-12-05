@@ -38,7 +38,11 @@ fn combine(left: &RangeInclusive<u64>, right: &RangeInclusive<u64>) -> Option<Ra
     ///// AAAA
     /////   BBBB
 
-    if left.contains(right.start()) || left.contains(right.end()) {
+    if left.contains(right.start())
+        || left.contains(right.end())
+        || right.contains(left.start())
+        || right.contains(left.end())
+    {
         // overlap
         let start = left.start().min(right.start());
         let end = left.end().max(right.end());
@@ -121,6 +125,17 @@ mod tests {
                 &(354113252785914..=354113252785914),
             ),
             Some(354113252785914..=359458697423182)
+        );
+    }
+
+    #[test]
+    fn test_failing() {
+        assert_eq!(
+            combine(
+                &(418784088040056..=419809022460311),
+                &(418978112767017..=419296794005487),
+            ),
+            Some(418784088040056..=419809022460311)
         );
     }
 }
