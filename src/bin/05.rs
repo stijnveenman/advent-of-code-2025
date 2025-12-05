@@ -1,5 +1,5 @@
 advent_of_code::solution!(5);
-use std::{collections::HashSet, ops::RangeInclusive};
+use std::ops::RangeInclusive;
 
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
@@ -75,15 +75,6 @@ pub fn part_two(input: &str) -> Option<u64> {
         }
         count = input.len();
     }
-
-    input.iter().for_each(|left| {
-        let right = input
-            .iter()
-            .filter(|right| *right != left)
-            .find(|right| left.contains(right.start()) || left.contains(right.end()));
-
-        assert_eq!(right, None, "failed {left:?} {right:?}")
-    });
 
     Some(input.iter().map(|c| 1 + c.end() - c.start()).sum())
 }
