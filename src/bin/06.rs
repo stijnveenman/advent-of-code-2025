@@ -2,14 +2,24 @@ advent_of_code::solution!(6);
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
 
-fn parse_input(input: &str) -> Vec<(Vec<u64>, char)> {
+fn rotate<T: Copy>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
+    let len = v.first().unwrap().len();
+
+    (0..len)
+        .map(|n| v.iter().map(|l| *l.get(n).unwrap()).collect_vec())
+        .collect_vec()
+}
+
+pub fn part_one(input: &str) -> Option<u64> {
     let lines = input
         .lines()
         .map(|line| line.split_whitespace().collect_vec())
         .collect_vec();
 
-    (0..lines.first().unwrap().len())
-        .map(|n| lines.iter().map(|l| l.get(n).unwrap()).collect_vec())
+    let input = rotate(lines);
+
+    let input = input
+        .into_iter()
         .map(|mut v| {
             let symbol = v.pop().unwrap().chars().next().unwrap();
 
@@ -20,11 +30,7 @@ fn parse_input(input: &str) -> Vec<(Vec<u64>, char)> {
 
             (v, symbol)
         })
-        .collect_vec()
-}
-
-pub fn part_one(input: &str) -> Option<u64> {
-    let input = parse_input(input);
+        .collect_vec();
 
     Some(
         input
@@ -39,9 +45,28 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let input = parse_input(input);
+    let input = input.lines().map(|l| l.chars().collect_vec()).collect_vec();
+    let input = rotate(input);
 
-    None
+    let result = input
+        .split(|v| v.iter().all(|c| *c == ' '))
+        .map(|v| v.iter().map(|s| s.iter().join("")).collect_vec())
+        .map(|mut v| {
+            let op = v.first_mut().unwrap().pop().unwrap();
+            let v = v
+                .iter()
+                .map(|v| v.trim().parse::<u64>().unwrap())
+                .collect_vec();
+
+            match op {
+                '+' => v.into_iter().reduce(|a, b| a + b).unwrap(),
+                '*' => v.into_iter().reduce(|a, b| a * b).unwrap(),
+                _ => panic!(),
+            }
+        })
+        .sum();
+
+    Some(result)
 }
 
 #[cfg(test)]
@@ -57,6 +82,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(3263827));
     }
 }
