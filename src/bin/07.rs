@@ -1,9 +1,11 @@
 advent_of_code::solution!(7);
+use std::collections::HashMap;
+
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
 use advent_of_code::{
     components::Point,
-    grid::{Grid, char_grid::CharGrid},
+    grid::{self, Grid, char_grid::CharGrid},
 };
 
 fn parse_input(input: &str) -> advent_of_code::grid::char_grid::CharGrid {
@@ -39,18 +41,35 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(splits)
 }
 
-fn ray(grid: &CharGrid, mut pos: Point) -> u64 {
+fn find_next(grid: &CharGrid, mut pos: Point) -> Option<Point> {
     loop {
         pos += Point::DOWN;
 
         if !grid.in_bounds(&pos) {
-            return 1;
+            return None;
         }
 
         if grid.get(&pos).is_some_and(|c| c == '^') {
-            return ray(grid, pos + Point::LEFT) + ray(grid, pos + Point::RIGHT);
+            return Some(pos);
         }
     }
+}
+
+fn ray(grid: &CharGrid, pos: Point, cache: &mut HashMap<Point, u64>) -> u64 {
+    if let Some(value) = cache.get(&pos) {
+        return *value;
+    }
+
+    let left = find_next(grid, pos + Point::LEFT)
+        .map(|p| ray(grid, p, cache))
+        .unwrap_or(1);
+
+    let right = find_next(grid, pos + Point::RIGHT)
+        .map(|p| ray(grid, p, cache))
+        .unwrap_or(1);
+
+    cache.insert(pos, left + right);
+    left + right
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
@@ -58,7 +77,8 @@ pub fn part_two(input: &str) -> Option<u64> {
 
     let start = grid.entries().find(|v| v.1 == 'S').unwrap().0;
 
-    Some(ray(&grid, start))
+    let mut cache = HashMap::new();
+    Some(ray(&grid, start, &mut cache))
 }
 
 #[cfg(test)]
