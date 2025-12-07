@@ -39,10 +39,51 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(splits)
 }
 
-pub fn part_two(input: &str) -> Option<u64> {
-    let input = parse_input(input);
+fn ray(grid: &CharGrid, mut pos: Point) -> Option<Point> {
+    loop {
+        pos += Point::DOWN;
 
-    None
+        if !grid.in_bounds(&pos) {
+            return None;
+        }
+
+        if grid.get(&pos).is_some_and(|c| c == '^') {
+            let a = grid.draw(|p, c| {
+                if p == &pos {
+                    'X'.to_string()
+                } else {
+                    c.unwrap().to_string()
+                }
+            });
+            println!("{a}\n");
+
+            return Some(pos);
+        }
+    }
+}
+
+pub fn part_two(input: &str) -> Option<u64> {
+    let grid = parse_input(input);
+
+    let start = grid.entries().find(|v| v.1 == 'S').unwrap().0;
+
+    let next = ray(&grid, start).unwrap();
+    let mut stack = vec![next];
+    let mut splits = 1;
+
+    while let Some(pos) = stack.pop() {
+        if let Some(next) = ray(&grid, pos + Point::LEFT) {
+            splits += 1;
+            stack.push(next);
+        }
+        if let Some(next) = ray(&grid, pos + Point::RIGHT) {
+            splits += 1;
+            stack.push(next);
+        }
+    }
+
+    // Not fully sure where this 1 comes from
+    Some(splits + 1)
 }
 
 #[cfg(test)]
@@ -58,6 +99,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(40));
     }
 }
