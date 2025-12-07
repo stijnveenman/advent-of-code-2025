@@ -39,25 +39,16 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(splits)
 }
 
-fn ray(grid: &CharGrid, mut pos: Point) -> Option<Point> {
+fn ray(grid: &CharGrid, mut pos: Point) -> u64 {
     loop {
         pos += Point::DOWN;
 
         if !grid.in_bounds(&pos) {
-            return None;
+            return 1;
         }
 
         if grid.get(&pos).is_some_and(|c| c == '^') {
-            let a = grid.draw(|p, c| {
-                if p == &pos {
-                    'X'.to_string()
-                } else {
-                    c.unwrap().to_string()
-                }
-            });
-            println!("{a}\n");
-
-            return Some(pos);
+            return ray(grid, pos + Point::LEFT) + ray(grid, pos + Point::RIGHT);
         }
     }
 }
@@ -67,23 +58,7 @@ pub fn part_two(input: &str) -> Option<u64> {
 
     let start = grid.entries().find(|v| v.1 == 'S').unwrap().0;
 
-    let next = ray(&grid, start).unwrap();
-    let mut stack = vec![next];
-    let mut splits = 1;
-
-    while let Some(pos) = stack.pop() {
-        if let Some(next) = ray(&grid, pos + Point::LEFT) {
-            splits += 1;
-            stack.push(next);
-        }
-        if let Some(next) = ray(&grid, pos + Point::RIGHT) {
-            splits += 1;
-            stack.push(next);
-        }
-    }
-
-    // Not fully sure where this 1 comes from
-    Some(splits + 1)
+    Some(ray(&grid, start))
 }
 
 #[cfg(test)]
