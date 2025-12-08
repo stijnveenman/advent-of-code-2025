@@ -71,20 +71,16 @@ pub fn part_one(input: &str) -> Option<u64> {
                 circuits.iter_mut().for_each(|m| {
                     if *m.1 == right_circuit {
                         *m.1 = left_circuit;
-                        println!("{:?} - {}", m.0, m.1);
                     }
                 });
             }
             (Some(left_circuit), None) => {
-                println!("{:?}-{:?} - {}", left, right, left_circuit);
                 circuits.insert(right, *left_circuit);
             }
             (None, Some(right_circuit)) => {
-                println!("{:?}-{:?} - {}", left, right, right_circuit);
                 circuits.insert(left, *right_circuit);
             }
             (None, None) => {
-                println!("{:?}-{:?} - {}", left, right, idx);
                 circuits.insert(left, idx);
                 circuits.insert(right, idx);
                 idx += 1;
@@ -97,7 +93,12 @@ pub fn part_one(input: &str) -> Option<u64> {
         }
     }
 
-    dbg!(circuits.iter().counts_by(|v| v.1));
+    for i in 0..5 {
+        println!();
+        for circuit in circuits.iter().filter(|v| *v.1 == i) {
+            println!("{:?}", circuit.0);
+        }
+    }
 
     None
 }
