@@ -62,9 +62,7 @@ pub fn part_one(input: &str) -> Option<u64> {
         let right_circuit = circuits.get(right);
 
         match (left_circuit, right_circuit) {
-            (Some(left_circuit), Some(right_circuit)) if left_circuit == right_circuit => {
-                continue;
-            }
+            (Some(left_circuit), Some(right_circuit)) if left_circuit == right_circuit => {}
             (Some(left_circuit), Some(right_circuit)) => {
                 let left_circuit = *left_circuit;
                 let right_circuit = *right_circuit;
@@ -93,14 +91,23 @@ pub fn part_one(input: &str) -> Option<u64> {
         }
     }
 
-    for i in 0..5 {
-        println!();
-        for circuit in circuits.iter().filter(|v| *v.1 == i) {
-            println!("{:?}", circuit.0);
-        }
-    }
+    let mut counts = circuits
+        .iter()
+        .counts_by(|v| v.1)
+        .into_iter()
+        .map(|v| v.1)
+        .collect_vec();
 
-    None
+    counts.sort();
+
+    Some(
+        counts
+            .into_iter()
+            .rev()
+            .take(3)
+            .reduce(|a, b| a * b)
+            .unwrap() as u64,
+    )
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
