@@ -1,14 +1,17 @@
 advent_of_code::solution!(8);
 
-use std::collections::{BTreeMap, btree_map::Entry};
+use std::{
+    collections::{BTreeMap, HashMap, HashSet, btree_map::Entry},
+    ops::AddAssign,
+};
 
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
 
 #[cfg(not(test))]
-const CONNECTIONS: u64 = 10;
+const CONNECTIONS: usize = 1000;
 #[cfg(test)]
-const CONNECTIONS: u64 = 10;
+const CONNECTIONS: usize = 10;
 
 fn parse_input(input: &str) -> Vec<[i64; 3]> {
     input
@@ -29,6 +32,8 @@ pub fn part_one(input: &str) -> Option<u64> {
     let input = parse_input(input);
 
     let mut distances = BTreeMap::new();
+    let mut idx = 0;
+    let mut circuits: HashMap<&[i64; 3], u64> = HashMap::new();
 
     for (left, right) in input.iter().tuple_combinations() {
         let distance: i64 = left
@@ -48,8 +53,51 @@ pub fn part_one(input: &str) -> Option<u64> {
         }
     }
 
-    dbg!(distances.pop_first());
-    dbg!(distances.pop_first());
+    let mut remaining = CONNECTIONS;
+    let iter = distances.values().flatten();
+
+    // probable issue, what if both left and right are in a different circuit
+    for (left, right) in iter {
+        let left_circuit = circuits.get(left);
+        let right_circuit = circuits.get(right);
+
+        match (left_circuit, right_circuit) {
+            (Some(left_circuit), Some(right_circuit)) if left_circuit == right_circuit => {
+                continue;
+            }
+            (Some(left_circuit), Some(right_circuit)) => {
+                let left_circuit = *left_circuit;
+                let right_circuit = *right_circuit;
+                circuits.iter_mut().for_each(|m| {
+                    if *m.1 == right_circuit {
+                        *m.1 = left_circuit;
+                        println!("{:?} - {}", m.0, m.1);
+                    }
+                });
+            }
+            (Some(left_circuit), None) => {
+                println!("{:?}-{:?} - {}", left, right, left_circuit);
+                circuits.insert(right, *left_circuit);
+            }
+            (None, Some(right_circuit)) => {
+                println!("{:?}-{:?} - {}", left, right, right_circuit);
+                circuits.insert(left, *right_circuit);
+            }
+            (None, None) => {
+                println!("{:?}-{:?} - {}", left, right, idx);
+                circuits.insert(left, idx);
+                circuits.insert(right, idx);
+                idx += 1;
+            }
+        }
+
+        remaining -= 1;
+        if remaining == 0 {
+            break;
+        }
+    }
+
+    dbg!(circuits.iter().counts_by(|v| v.1));
 
     None
 }
