@@ -53,11 +53,7 @@ pub fn part_one(input: &str) -> Option<u64> {
         }
     }
 
-    let mut remaining = CONNECTIONS;
-    let iter = distances.values().flatten();
-
-    // probable issue, what if both left and right are in a different circuit
-    for (left, right) in iter {
+    for (left, right) in distances.values().flatten().take(CONNECTIONS) {
         let left_circuit = circuits.get(left);
         let right_circuit = circuits.get(right);
 
@@ -83,11 +79,6 @@ pub fn part_one(input: &str) -> Option<u64> {
                 circuits.insert(right, idx);
                 idx += 1;
             }
-        }
-
-        remaining -= 1;
-        if remaining == 0 {
-            break;
         }
     }
 
