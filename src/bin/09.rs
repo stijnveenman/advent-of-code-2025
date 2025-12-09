@@ -1,14 +1,14 @@
 advent_of_code::solution!(9);
 
-use std::{cmp::Ordering, net::ToSocketAddrs, ops::Bound};
+use std::cmp::Ordering;
 
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
+#[allow(unused_imports)]
 use advent_of_code::{
     components::Point,
     grid::{Grid, hash_grid::HashGrid},
 };
-use itertools::Position;
 
 fn parse_input(input: &str) -> Vec<Point> {
     input
@@ -23,7 +23,7 @@ fn parse_input(input: &str) -> Vec<Point> {
 
 fn lines(points: &[Point]) -> Vec<(Point, Point)> {
     let mut v = vec![];
-    let mut direction = Ordering::Greater;
+    let mut direction = Ordering::Less;
 
     for i in 0..points.len() {
         let l = points[i];
@@ -109,29 +109,29 @@ pub fn part_two(input: &str) -> Option<u64> {
     let lines = lines(&input);
     let vertical = lines.iter().collect_vec();
 
-    let mut c = HashGrid::with_bounds(Point::new(0, 0), Point::new(13, 8));
-    c.set(&Point::UP, 2);
-    let f = c.draw(|p, c| {
-        // if p == &Point::new(2, 5) {
-        //     return "?".to_string();
-        // }
-
-        if lines.iter().any(|line| {
-            line.0.x == p.x && abs_contains(line.0.y, line.1.y, p.y)
-            // || line.0.y == p.y && abs_contains(line.0.x, line.1.x, p.x)
-        }) {
-            "#".to_string()
-        } else if lines.iter().any(|line| {
-            // line.0.x == p.x && abs_contains(line.0.y, line.1.y, p.y)
-            line.0.y == p.y && abs_contains(line.0.x, line.1.x, p.x)
-        }) {
-            "O".to_string()
-        } else {
-            ".".to_string()
-        }
-    });
-    println!("{f}");
-    panic!();
+    // let mut c = HashGrid::with_bounds(Point::new(0, 0), Point::new(13, 8));
+    // c.set(&Point::UP, 2);
+    // let f = c.draw(|p, c| {
+    //     // if p == &Point::new(2, 5) {
+    //     //     return "?".to_string();
+    //     // }
+    //
+    //     if lines.iter().any(|line| {
+    //         line.0.x == p.x && abs_contains(line.0.y, line.1.y, p.y)
+    //         // || line.0.y == p.y && abs_contains(line.0.x, line.1.x, p.x)
+    //     }) {
+    //         "#".to_string()
+    //     } else if lines.iter().any(|line| {
+    //         // line.0.x == p.x && abs_contains(line.0.y, line.1.y, p.y)
+    //         line.0.y == p.y && abs_contains(line.0.x, line.1.x, p.x)
+    //     }) {
+    //         "O".to_string()
+    //     } else {
+    //         ".".to_string()
+    //     }
+    // });
+    // println!("{f}");
+    // panic!();
 
     let mut max = u64::MIN;
     for l in 0..input.len() {
