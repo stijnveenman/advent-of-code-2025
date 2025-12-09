@@ -185,6 +185,10 @@ impl Point {
         let distance = *self - *rhs;
         (distance.x.abs() + distance.y.abs()) as usize
     }
+
+    pub fn abs(&self) -> Point {
+        Point::new(self.x.abs(), self.y.abs())
+    }
 }
 
 impl AddAssign<Point> for Point {
