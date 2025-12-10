@@ -99,6 +99,16 @@ fn unpress(state: &mut [usize], button: &[usize]) {
     }
 }
 
+fn complete(state: &mut [usize], target: &[usize]) -> std::vec::Vec<usize> {
+    state
+        .iter()
+        .zip(target.iter())
+        .enumerate()
+        .filter(|(_, i)| i.0 == i.1)
+        .map(|i| i.0)
+        .collect_vec()
+}
+
 #[allow(clippy::collapsible_if)]
 fn joltage_bfs(
     state: &mut [usize],
@@ -106,9 +116,14 @@ fn joltage_bfs(
     buttons: &[Vec<usize>],
     cache: &mut HashMap<Vec<usize>, Option<u64>>,
     depth: u64,
+    maxdepth: &mut Option<u64>,
 ) -> Option<u64> {
     if let Some(value) = cache.get(state) {
         return value.map(|f| depth + f);
+    }
+
+    if maxdepth.is_some_and(|max| depth > max) {
+        return None;
     }
 
     let mut min = None;
@@ -118,11 +133,14 @@ fn joltage_bfs(
 
         if state == target {
             unpress(state, button);
+            if maxdepth.is_none_or(|max| depth < max) {
+                *maxdepth = Some(depth);
+            }
             return Some(depth);
         }
 
         if is_below(state, target) {
-            if let Some(n) = joltage_bfs(state, target, buttons, cache, depth + 1) {
+            if let Some(n) = joltage_bfs(state, target, buttons, cache, depth + 1, maxdepth) {
                 if min.is_none_or(|min| n < min) {
                     min = Some(n);
                 }
@@ -156,6 +174,7 @@ pub fn part_two(input: &str) -> Option<u64> {
                     &buttons,
                     &mut HashMap::new(),
                     1,
+                    &mut None,
                 )
                 .unwrap();
                 let progress = progress.fetch_add(1, Ordering::Relaxed) + 1;
