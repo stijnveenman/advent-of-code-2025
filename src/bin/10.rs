@@ -104,6 +104,10 @@ fn count_pressed_2(joltage: Vec<usize>, buttons: Vec<Vec<usize>>) -> u64 {
                     return clicks;
                 }
 
+                if state.iter().zip(joltage.iter()).any(|(a, b)| a > b) {
+                    continue;
+                }
+
                 if !visited.contains(&state) {
                     visited.insert(state.clone());
                     new_states.push(state);
@@ -122,7 +126,7 @@ pub fn part_two(input: &str) -> Option<u64> {
     Some(
         input
             .into_par_iter()
-            .map(|(_, buttons, joltage)| count_pressed_2(joltage, buttons))
+            .map(|(_, buttons, joltage)| dbg!(count_pressed_2(dbg!(joltage), dbg!(buttons))))
             .sum(),
     )
 }
