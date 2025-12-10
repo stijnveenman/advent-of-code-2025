@@ -1,6 +1,9 @@
 advent_of_code::solution!(10);
 
-use std::collections::HashSet;
+use std::{
+    collections::HashSet,
+    sync::atomic::{AtomicUsize, Ordering},
+};
 
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
@@ -135,6 +138,8 @@ fn count_joltage(state: &mut [usize], target: &[usize], buttons: &[Vec<usize>]) 
 
 pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
+    let count = input.len();
+    let progress = AtomicUsize::new(0);
 
     Some(
         input
@@ -145,14 +150,15 @@ pub fn part_two(input: &str) -> Option<u64> {
                 // this puts large buttons at the end
                 buttons.sort_by_key(|s| s.len());
 
-                dbg!(
-                    count_joltage(
-                        &mut joltage.iter().map(|_| 0).collect_vec(),
-                        &joltage,
-                        &buttons,
-                    )
-                    .unwrap()
+                let result = count_joltage(
+                    &mut joltage.iter().map(|_| 0).collect_vec(),
+                    &joltage,
+                    &buttons,
                 )
+                .unwrap();
+                let progress = progress.fetch_add(1, Ordering::Relaxed) + 1;
+                println!("{}/{count} - {result}", progress);
+                result
             })
             .sum(),
     )
