@@ -1,7 +1,7 @@
 advent_of_code::solution!(10);
 
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     sync::atomic::{AtomicUsize, Ordering},
 };
 
@@ -100,7 +100,16 @@ fn unpress(state: &mut [usize], button: &[usize]) {
 }
 
 #[allow(clippy::collapsible_if)]
-fn joltage_bfs(state: &mut [usize], target: &[usize], buttons: &[Vec<usize>]) -> Option<u64> {
+fn joltage_bfs(
+    state: &mut [usize],
+    target: &[usize],
+    buttons: &[Vec<usize>],
+    cache: &mut HashMap<Vec<usize>, Option<u64>>,
+) -> Option<u64> {
+    if let Some(value) = cache.get(state) {
+        return value.to_owned();
+    }
+
     let mut min = None;
 
     for button in buttons {
@@ -112,7 +121,7 @@ fn joltage_bfs(state: &mut [usize], target: &[usize], buttons: &[Vec<usize>]) ->
         }
 
         if is_below(state, target) {
-            if let Some(n) = joltage_bfs(state, target, buttons) {
+            if let Some(n) = joltage_bfs(state, target, buttons, cache) {
                 let n = n + 1;
 
                 if min.is_none_or(|min| n < min) {
@@ -124,6 +133,7 @@ fn joltage_bfs(state: &mut [usize], target: &[usize], buttons: &[Vec<usize>]) ->
         unpress(state, button);
     }
 
+    cache.insert(state.to_vec(), min);
     min
 }
 
@@ -182,6 +192,7 @@ pub fn part_two(input: &str) -> Option<u64> {
                     &mut joltage.iter().map(|_| 0).collect_vec(),
                     &joltage,
                     &buttons,
+                    &mut HashMap::new(),
                 )
                 .unwrap();
                 let progress = progress.fetch_add(1, Ordering::Relaxed) + 1;
