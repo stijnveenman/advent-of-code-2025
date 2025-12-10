@@ -8,6 +8,23 @@ impl Matrix {
     pub fn empty(n: usize, m: usize) -> Self {
         Matrix(vec![vec![0; m]; n])
     }
+
+    fn pivot_index(&self) -> usize {
+        self.0
+            .iter()
+            .find_position(|v| *v.first().unwrap() == 1)
+            .unwrap()
+            .0
+    }
+
+    pub fn row_echelon(&mut self) {
+        let pivot = self.pivot_index();
+
+        if pivot != 0 {
+            let [first, pivot] = self.0.get_disjoint_mut([0, pivot]).unwrap();
+            std::mem::swap(first, pivot);
+        }
+    }
 }
 
 impl From<&[usize]> for Matrix {

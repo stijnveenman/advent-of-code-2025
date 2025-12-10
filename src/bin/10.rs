@@ -106,7 +106,11 @@ pub fn part_two(input: &str) -> Option<u64> {
 
     input.into_iter().for_each(|(_, buttons, joltage)| {
         let matrix = Matrix::from(&joltage[..]);
-        let buttons = buttons_to_matrix(buttons, joltage.len());
+        let mut buttons = buttons_to_matrix(buttons, joltage.len());
+        println!("-----");
+        println!("{}", matrix);
+        println!("{}", buttons);
+        buttons.row_echelon();
         println!("{}", buttons);
     });
 
