@@ -99,6 +99,34 @@ fn unpress(state: &mut [usize], button: &[usize]) {
     }
 }
 
+#[allow(clippy::collapsible_if)]
+fn joltage_bfs(state: &mut [usize], target: &[usize], buttons: &[Vec<usize>]) -> Option<u64> {
+    let mut min = None;
+
+    for button in buttons {
+        press(state, button);
+
+        if state == target {
+            unpress(state, button);
+            return Some(1);
+        }
+
+        if is_below(state, target) {
+            if let Some(n) = joltage_bfs(state, target, buttons) {
+                let n = n + 1;
+
+                if min.is_none_or(|min| n < min) {
+                    min = Some(n);
+                }
+            }
+        }
+
+        unpress(state, button);
+    }
+
+    min
+}
+
 fn count_joltage(state: &mut [usize], target: &[usize], buttons: &[Vec<usize>]) -> Option<u64> {
     if buttons.is_empty() {
         return None;
@@ -150,7 +178,7 @@ pub fn part_two(input: &str) -> Option<u64> {
                 // this puts large buttons at the end
                 buttons.sort_by_key(|s| s.len());
 
-                let result = count_joltage(
+                let result = joltage_bfs(
                     &mut joltage.iter().map(|_| 0).collect_vec(),
                     &joltage,
                     &buttons,
