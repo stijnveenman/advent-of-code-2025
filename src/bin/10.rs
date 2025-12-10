@@ -5,6 +5,7 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
+use advent_of_code::components::matrix::Matrix;
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
 
@@ -82,8 +83,32 @@ pub fn part_one(input: &str) -> Option<u64> {
             .sum(),
     )
 }
+
+fn buttons_to_matrix(buttons: Vec<Vec<usize>>, m: usize) -> Matrix {
+    (0..m)
+        .map(|m| {
+            (0..buttons.len())
+                .map(|n| {
+                    if buttons.get(n).unwrap().contains(&m) {
+                        1
+                    } else {
+                        0
+                    }
+                })
+                .collect_vec()
+        })
+        .collect_vec()
+        .into()
+}
+
 pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
+
+    input.into_iter().for_each(|(_, buttons, joltage)| {
+        let matrix = Matrix::from(&joltage[..]);
+        let buttons = buttons_to_matrix(buttons, joltage.len());
+        println!("{}", buttons);
+    });
 
     None
 }
