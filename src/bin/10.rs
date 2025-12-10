@@ -1,8 +1,12 @@
 advent_of_code::solution!(10);
+
+use std::collections::HashSet;
+
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
 
-fn parse_input(input: &str) -> Vec<(Vec<bool>, Vec<Vec<u64>>, Vec<u64>)> {
+#[allow(clippy::type_complexity)]
+fn parse_input(input: &str) -> Vec<(Vec<bool>, Vec<Vec<usize>>, Vec<usize>)> {
     input
         .lines()
         .map(|line| {
@@ -17,7 +21,7 @@ fn parse_input(input: &str) -> Vec<(Vec<bool>, Vec<Vec<u64>>, Vec<u64>)> {
                 .map(|button| {
                     button[1..button.len() - 1]
                         .split(",")
-                        .map(|b| b.parse::<u64>().unwrap())
+                        .map(|b| b.parse::<usize>().unwrap())
                         .collect_vec()
                 })
                 .collect_vec();
@@ -29,11 +33,51 @@ fn parse_input(input: &str) -> Vec<(Vec<bool>, Vec<Vec<u64>>, Vec<u64>)> {
         .collect_vec()
 }
 
+fn apply_click(state: &[bool], button: &[usize]) -> Vec<bool> {
+    let mut state = state.to_vec();
+    for i in button {
+        state[*i] = !state[*i];
+    }
+    state
+}
+
+fn count_pressed(lights: Vec<bool>, buttons: Vec<Vec<usize>>) -> u64 {
+    let mut states = vec![lights.iter().map(|_| false).collect_vec()];
+    let mut new_states = vec![];
+    let mut visited = HashSet::new();
+    let mut clicks = 0;
+
+    loop {
+        clicks += 1;
+        for state in &states {
+            for button in &buttons {
+                let state = apply_click(state, button);
+
+                if state == lights {
+                    return clicks;
+                }
+
+                if !visited.contains(&state) {
+                    visited.insert(state.clone());
+                    new_states.push(state);
+                }
+            }
+        }
+
+        std::mem::swap(&mut states, &mut new_states);
+        new_states.clear();
+    }
+}
+
 pub fn part_one(input: &str) -> Option<u64> {
     let input = parse_input(input);
-    dbg!(input);
 
-    None
+    Some(
+        input
+            .into_par_iter()
+            .map(|(lights, buttons, _)| count_pressed(lights, buttons))
+            .sum(),
+    )
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
