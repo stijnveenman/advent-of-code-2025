@@ -105,9 +105,10 @@ fn joltage_bfs(
     target: &[usize],
     buttons: &[Vec<usize>],
     cache: &mut HashMap<Vec<usize>, Option<u64>>,
+    depth: u64,
 ) -> Option<u64> {
     if let Some(value) = cache.get(state) {
-        return value.to_owned();
+        return value.map(|f| depth + f);
     }
 
     let mut min = None;
@@ -117,13 +118,11 @@ fn joltage_bfs(
 
         if state == target {
             unpress(state, button);
-            return Some(1);
+            return Some(depth);
         }
 
         if is_below(state, target) {
-            if let Some(n) = joltage_bfs(state, target, buttons, cache) {
-                let n = n + 1;
-
+            if let Some(n) = joltage_bfs(state, target, buttons, cache, depth + 1) {
                 if min.is_none_or(|min| n < min) {
                     min = Some(n);
                 }
@@ -133,45 +132,8 @@ fn joltage_bfs(
         unpress(state, button);
     }
 
-    cache.insert(state.to_vec(), min);
+    cache.insert(state.to_vec(), min.map(|min| min - depth));
     min
-}
-
-fn count_joltage(state: &mut [usize], target: &[usize], buttons: &[Vec<usize>]) -> Option<u64> {
-    if buttons.is_empty() {
-        return None;
-    }
-
-    let (button, buttons) = buttons.split_last().unwrap();
-    let mut clicks = 0;
-
-    while is_below(state, target) {
-        if state == target {
-            return Some(clicks);
-        }
-
-        press(state, button);
-        clicks += 1;
-    }
-
-    clicks -= 1;
-    unpress(state, button);
-
-    loop {
-        // println!("{button:?} - {clicks} - {state:?}");
-        if let Some(next_clicks) = count_joltage(state, target, buttons) {
-            return Some(clicks + next_clicks);
-        }
-
-        if clicks > 0 {
-            unpress(state, button);
-            clicks -= 1;
-        } else {
-            break;
-        }
-    }
-
-    None
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
@@ -185,14 +147,15 @@ pub fn part_two(input: &str) -> Option<u64> {
             .map(|(_, mut buttons, joltage)| {
                 // println!("\n\n{joltage:?}\n");
                 // assume it's more efficient to press large buttons first
-                // this puts large buttons at the end
                 buttons.sort_by_key(|s| s.len());
+                buttons.reverse();
 
                 let result = joltage_bfs(
                     &mut joltage.iter().map(|_| 0).collect_vec(),
                     &joltage,
                     &buttons,
                     &mut HashMap::new(),
+                    1,
                 )
                 .unwrap();
                 let progress = progress.fetch_add(1, Ordering::Relaxed) + 1;
