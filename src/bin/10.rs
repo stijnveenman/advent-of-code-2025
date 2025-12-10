@@ -80,10 +80,51 @@ pub fn part_one(input: &str) -> Option<u64> {
     )
 }
 
+fn apply_click_2(state: &[usize], button: &[usize]) -> Vec<usize> {
+    let mut state = state.to_vec();
+    for i in button {
+        state[*i] += 1;
+    }
+    state
+}
+
+fn count_pressed_2(joltage: Vec<usize>, buttons: Vec<Vec<usize>>) -> u64 {
+    let mut states = vec![joltage.iter().map(|_| 0usize).collect_vec()];
+    let mut new_states = vec![];
+    let mut visited = HashSet::new();
+    let mut clicks = 0;
+
+    loop {
+        clicks += 1;
+        for state in &states {
+            for button in &buttons {
+                let state = apply_click_2(state, button);
+
+                if state == joltage {
+                    return clicks;
+                }
+
+                if !visited.contains(&state) {
+                    visited.insert(state.clone());
+                    new_states.push(state);
+                }
+            }
+        }
+
+        std::mem::swap(&mut states, &mut new_states);
+        new_states.clear();
+    }
+}
+
 pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
 
-    None
+    Some(
+        input
+            .into_par_iter()
+            .map(|(_, buttons, joltage)| count_pressed_2(joltage, buttons))
+            .sum(),
+    )
 }
 
 #[cfg(test)]
@@ -99,6 +140,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(33));
     }
 }
