@@ -109,11 +109,18 @@ fn complete(state: &mut [usize], target: &[usize]) -> std::vec::Vec<usize> {
         .collect_vec()
 }
 
+fn filter_buttons(complete: Vec<usize>, buttons: Vec<&[usize]>) -> Vec<&[usize]> {
+    buttons
+        .into_iter()
+        .filter(|button| !button.iter().any(|idx| complete.contains(idx)))
+        .collect_vec()
+}
+
 #[allow(clippy::collapsible_if)]
 fn joltage_bfs(
     state: &mut [usize],
     target: &[usize],
-    buttons: &[Vec<usize>],
+    buttons: Vec<&[usize]>,
     cache: &mut HashMap<Vec<usize>, Option<u64>>,
     depth: u64,
     maxdepth: &mut Option<u64>,
@@ -128,7 +135,7 @@ fn joltage_bfs(
 
     let mut min = None;
 
-    for button in buttons {
+    for button in &buttons {
         press(state, button);
 
         if state == target {
@@ -140,6 +147,7 @@ fn joltage_bfs(
         }
 
         if is_below(state, target) {
+            let buttons = filter_buttons(complete(state, target), buttons.clone());
             if let Some(n) = joltage_bfs(state, target, buttons, cache, depth + 1, maxdepth) {
                 if min.is_none_or(|min| n < min) {
                     min = Some(n);
@@ -168,10 +176,12 @@ pub fn part_two(input: &str) -> Option<u64> {
                 buttons.sort_by_key(|s| s.len());
                 buttons.reverse();
 
+                let buttons_slices = buttons.iter().map(|f| &f[..]).collect_vec();
+
                 let result = joltage_bfs(
                     &mut joltage.iter().map(|_| 0).collect_vec(),
                     &joltage,
-                    &buttons,
+                    buttons_slices,
                     &mut HashMap::new(),
                     1,
                     &mut None,
