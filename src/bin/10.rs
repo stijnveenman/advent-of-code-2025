@@ -80,44 +80,57 @@ pub fn part_one(input: &str) -> Option<u64> {
     )
 }
 
-fn apply_click_2(state: &[usize], button: &[usize]) -> Vec<usize> {
-    let mut state = state.to_vec();
-    for i in button {
-        state[*i] += 1;
-    }
-    state
+fn is_below(state: &[usize], target: &[usize]) -> bool {
+    !state.iter().zip(target.iter()).any(|(a, b)| a > b)
 }
 
-fn count_pressed_2(joltage: Vec<usize>, buttons: Vec<Vec<usize>>) -> u64 {
-    let mut states = vec![joltage.iter().map(|_| 0usize).collect_vec()];
-    let mut new_states = vec![];
-    let mut visited = HashSet::new();
+fn press(state: &mut [usize], button: &[usize]) {
+    for b in button {
+        state[*b] += 1;
+    }
+}
+
+fn unpress(state: &mut [usize], button: &[usize]) {
+    for b in button {
+        state[*b] -= 1;
+    }
+}
+
+fn count_joltage(state: &mut [usize], target: &[usize], buttons: &[Vec<usize>]) -> Option<u64> {
+    if buttons.is_empty() {
+        return None;
+    }
+
+    let (button, buttons) = buttons.split_last().unwrap();
     let mut clicks = 0;
 
-    loop {
-        clicks += 1;
-        for state in &states {
-            for button in &buttons {
-                let state = apply_click_2(state, button);
-
-                if state == joltage {
-                    return clicks;
-                }
-
-                if state.iter().zip(joltage.iter()).any(|(a, b)| a > b) {
-                    continue;
-                }
-
-                if !visited.contains(&state) {
-                    visited.insert(state.clone());
-                    new_states.push(state);
-                }
-            }
+    while is_below(state, target) {
+        if state == target {
+            return Some(clicks);
         }
 
-        std::mem::swap(&mut states, &mut new_states);
-        new_states.clear();
+        press(state, button);
+        clicks += 1;
     }
+
+    clicks -= 1;
+    unpress(state, button);
+
+    loop {
+        // println!("{button:?} - {clicks} - {state:?}");
+        if let Some(next_clicks) = count_joltage(state, target, buttons) {
+            return Some(clicks + next_clicks);
+        }
+
+        if clicks > 0 {
+            unpress(state, button);
+            clicks -= 1;
+        } else {
+            break;
+        }
+    }
+
+    None
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
@@ -126,7 +139,21 @@ pub fn part_two(input: &str) -> Option<u64> {
     Some(
         input
             .into_par_iter()
-            .map(|(_, buttons, joltage)| dbg!(count_pressed_2(dbg!(joltage), dbg!(buttons))))
+            .map(|(_, mut buttons, joltage)| {
+                // println!("\n\n{joltage:?}\n");
+                // assume it's more efficient to press large buttons first
+                // this puts large buttons at the end
+                buttons.sort_by_key(|s| s.len());
+
+                dbg!(
+                    count_joltage(
+                        &mut joltage.iter().map(|_| 0).collect_vec(),
+                        &joltage,
+                        &buttons,
+                    )
+                    .unwrap()
+                )
+            })
             .sum(),
     )
 }
