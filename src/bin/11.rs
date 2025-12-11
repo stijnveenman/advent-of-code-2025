@@ -1,6 +1,6 @@
 advent_of_code::solution!(11);
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{HashMap, HashSet, hash_map::Entry},
     fs::File,
     io::Write,
     process::{Command, Stdio},
@@ -36,7 +36,7 @@ fn path_count(connections: &HashMap<&str, Vec<&str>>, from: &str, to: &str) -> u
         .sum()
 }
 
-fn render_graph(connections: &HashMap<&str, Vec<&str>>) {
+fn render_graph(connections: &HashMap<&str, Vec<&str>>, filename: &str) {
     let mut deps = Graph::<&str, &str>::new();
     let mut indexes = HashMap::new();
 
@@ -71,30 +71,8 @@ fn render_graph(connections: &HashMap<&str, Vec<&str>>) {
 
     let dot_output = dot.wait_with_output().unwrap();
 
-    let mut file = File::create("output.svg").unwrap();
+    let mut file = File::create(filename).unwrap();
     file.write_all(&dot_output.stdout).unwrap();
-}
-
-fn path_count_containing(
-    connections: &HashMap<&str, Vec<&str>>,
-    from: &str,
-    to: &str,
-    visited: &mut HashMap<String, u64>,
-) -> u64 {
-    if from == to {
-        return 1;
-    }
-
-    let Some(next) = connections.get(from) else {
-        return 0;
-    };
-
-    let count = next
-        .iter()
-        .map(|from| path_count_containing(connections, from, to, visited))
-        .sum();
-    visited.insert(from.to_string(), count);
-    count
 }
 
 pub fn part_one(input: &str) -> Option<u64> {
@@ -103,10 +81,33 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(path_count(&input, "you", "out"))
 }
 
-pub fn part_two(input: &str) -> Option<u64> {
-    let input = parse_input(input);
+fn flip_connections<'a>(
+    connections: &HashMap<&'a str, Vec<&'a str>>,
+) -> HashMap<&'a str, Vec<&'a str>> {
+    let mut hm = HashMap::new();
+    for (from, to) in connections {
+        for to in to {
+            match hm.entry(*to) {
+                Entry::Occupied(mut occupied_entry) => {
+                    let v: &mut Vec<&str> = occupied_entry.get_mut();
+                    v.push(*from);
+                }
+                Entry::Vacant(vacant_entry) => {
+                    vacant_entry.insert(vec![*from]);
+                }
+            }
+        }
+    }
 
-    render_graph(&input);
+    hm
+}
+
+pub fn part_two(input: &str) -> Option<u64> {
+    let out_connections = parse_input(input);
+    let in_connections = flip_connections(&out_connections);
+
+    render_graph(&out_connections, "out.svg");
+    render_graph(&in_connections, "in.svg");
 
     None
 }
