@@ -110,19 +110,34 @@ fn routes_between(
     from: &str,
     to: &str,
 ) -> usize {
+    dbg!(from);
     let mut stack = out_connections.get(from).unwrap().to_vec();
+
     let mut routes = HashMap::from([(from, 1)]);
+    for first in &stack {
+        for inc in in_connections.get(first).unwrap() {
+            routes.entry(inc).or_insert(0);
+        }
+    }
 
     loop {
         let mut next_stack = HashSet::new();
+        dbg!(&stack);
+        assert!(!stack.is_empty());
         for current in stack {
-            let in_routes = in_connections
+            let Some(in_routes) = in_connections
                 .get(current)
                 .unwrap()
                 .iter()
                 // i think this unwrap_or is wrong in the real input
-                .map(|inc| routes.get(inc).unwrap_or(&0))
-                .sum();
+                .map(|inc| routes.get(inc))
+                .sum::<Option<_>>()
+            else {
+                // previous routes not fully calculated yet, skip it. another item will trigger it
+                // again
+                dbg!(current);
+                continue;
+            };
 
             routes.insert(current, in_routes);
 
