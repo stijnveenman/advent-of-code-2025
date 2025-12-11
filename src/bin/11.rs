@@ -108,18 +108,28 @@ fn routes_between(
     out_connections: &HashMap<&str, Vec<&str>>,
     from: &str,
     to: &str,
-) {
-    let mut stack = vec![from];
+) -> usize {
+    let mut stack = out_connections.get(from).unwrap().to_vec();
+    let mut routes = HashMap::from([(from, 1)]);
 
     loop {
         let mut next_stack = HashSet::new();
         for current in stack {
-            for next in out_connections.get(current).unwrap() {
-                if *next == to {
-                    println!("{}", to);
-                    return;
-                }
+            let in_routes = in_connections
+                .get(dbg!(current))
+                .unwrap()
+                .iter()
+                .map(|inc| routes.get(inc).unwrap())
+                .sum();
 
+            routes.insert(current, in_routes);
+
+            if current == to {
+                dbg!(in_routes);
+                return in_routes;
+            }
+
+            for next in out_connections.get(current).unwrap() {
                 next_stack.insert(*next);
             }
         }
@@ -134,7 +144,8 @@ pub fn part_two(input: &str) -> Option<u64> {
     // render_graph(&out_connections, "out.svg");
     // render_graph(&in_connections, "in.svg");
 
-    routes_between(&in_connections, &out_connections, "svr", "out");
+    let routes = routes_between(&in_connections, &out_connections, "svr", "out");
+    dbg!(routes);
 
     None
 }
