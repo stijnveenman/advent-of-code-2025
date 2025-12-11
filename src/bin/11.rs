@@ -153,31 +153,59 @@ fn routes_between(
     }
 }
 
+fn color_graph<'a>(
+    in_connections: &HashMap<&'a str, Vec<&'a str>>,
+    from: &'a str,
+) -> HashSet<&'a str> {
+    let mut stack = vec![from];
+    let mut visited = HashSet::from([from]);
+
+    while let Some(node) = stack.pop() {
+        for n in in_connections.get(node).unwrap_or(&Vec::new()) {
+            if visited.contains(n) {
+                continue;
+            }
+
+            visited.insert(n);
+            stack.push(n);
+        }
+    }
+
+    visited
+}
+
+// test assumption:
+// any node is at an exact depth, ie; nodes don't skip over layers
+// false
+#[allow(dead_code)]
+fn find_depth<'a>(
+    out_connections: &HashMap<&'a str, Vec<&'a str>>,
+    node: &'a str,
+    depth: usize,
+    visited: &mut HashMap<&'a str, usize>,
+) {
+    dbg!(depth);
+    for connection in out_connections.get(dbg!(node)).unwrap_or(&Vec::new()) {
+        match visited.entry(connection) {
+            Entry::Occupied(occupied_entry) => {
+                assert_eq!(*occupied_entry.get(), depth)
+            }
+            Entry::Vacant(vacant_entry) => {
+                vacant_entry.insert(depth);
+                find_depth(out_connections, connection, depth + 1, visited);
+            }
+        }
+    }
+}
+
 pub fn part_two(input: &str) -> Option<u64> {
     let out_connections = parse_input(input);
     let in_connections = flip_connections(&out_connections);
 
-    // render_graph(&out_connections, "out.svg");
+    // render_graph(&out_connections, "test.svg");
     // render_graph(&in_connections, "in.svg");
 
-    let result = dbg!(routes_between(
-        &in_connections,
-        &out_connections,
-        "svr",
-        "fft"
-    )) * dbg!(routes_between(
-        &in_connections,
-        &out_connections,
-        "fft",
-        "dac"
-    )) * dbg!(routes_between(
-        &in_connections,
-        &out_connections,
-        "dac",
-        "out"
-    ));
-
-    Some(result as u64)
+    None
 }
 
 #[cfg(test)]
