@@ -2,6 +2,7 @@ advent_of_code::solution!(11);
 use std::{
     collections::{HashMap, HashSet, hash_map::Entry},
     fs::File,
+    hash::Hash,
     io::Write,
     process::{Command, Stdio},
     vec,
@@ -198,6 +199,50 @@ fn find_depth<'a>(
     }
 }
 
+fn next_layer<'a>(connections: &HashMap<&'a str, Vec<&'a str>>, from: &'a str) -> Vec<&'a str> {
+    let mut stack = connections.get(from).unwrap().to_vec();
+    let mut layer = HashSet::new();
+
+    while let Some(node) = stack.pop() {
+        if node == "fft" || node == "dac" || node == "svr" {
+            return vec![node];
+        }
+
+        let out = connections.get(node).unwrap();
+
+        if out.len() > 6 {
+            layer.insert(node);
+        } else {
+            stack.extend(out);
+        }
+    }
+
+    layer.into_iter().collect_vec()
+}
+
+fn layered_path_count(
+    connections: &HashMap<&str, Vec<&str>>,
+    from: &str,
+    to: &str,
+    layer: &Vec<&str>,
+) -> u64 {
+    if from == to {
+        return 1;
+    }
+
+    if layer.contains(&from) {
+        return 0;
+    }
+
+    let Some(next) = connections.get(from) else {
+        return 0;
+    };
+
+    next.iter()
+        .map(|from| layered_path_count(connections, from, to, layer))
+        .sum()
+}
+
 pub fn part_two(input: &str) -> Option<u64> {
     let out_connections = parse_input(input);
     let in_connections = flip_connections(&out_connections);
@@ -205,7 +250,46 @@ pub fn part_two(input: &str) -> Option<u64> {
     // render_graph(&out_connections, "test.svg");
     // render_graph(&in_connections, "in.svg");
 
-    None
+    let mut layers = vec![vec!["out"]];
+    loop {
+        let from = layers.last().unwrap().first().unwrap();
+
+        let layer = next_layer(&in_connections, from);
+
+        if layer.contains(&"svr") {
+            layers.push(layer);
+            break;
+        }
+        layers.push(layer);
+    }
+
+    let mut routes = HashMap::from([("out", 1)]);
+
+    for i in 0..layers.len() - 1 {
+        let current = &layers[i];
+        let next = &layers[i + 1];
+
+        for to in next {
+            let to_count = current
+                .iter()
+                .map(|from| {
+                    let prev = routes.get(from).unwrap();
+
+                    let next = if next.len() == 1 {
+                        layers.get(i + 2).unwrap_or(next)
+                    } else {
+                        next
+                    };
+
+                    prev * layered_path_count(&in_connections, from, to, next)
+                })
+                .sum();
+
+            routes.insert(to, to_count);
+        }
+    }
+
+    Some(*routes.get("svr").unwrap())
 }
 
 #[cfg(test)]
