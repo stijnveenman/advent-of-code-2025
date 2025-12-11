@@ -37,6 +37,7 @@ fn path_count(connections: &HashMap<&str, Vec<&str>>, from: &str, to: &str) -> u
         .sum()
 }
 
+#[allow(dead_code)]
 fn render_graph(connections: &HashMap<&str, Vec<&str>>, filename: &str) {
     let mut deps = Graph::<&str, &str>::new();
     let mut indexes = HashMap::new();
@@ -116,16 +117,16 @@ fn routes_between(
         let mut next_stack = HashSet::new();
         for current in stack {
             let in_routes = in_connections
-                .get(dbg!(current))
+                .get(current)
                 .unwrap()
                 .iter()
-                .map(|inc| routes.get(inc).unwrap())
+                // i think this unwrap_or is wrong in the real input
+                .map(|inc| routes.get(inc).unwrap_or(&0))
                 .sum();
 
             routes.insert(current, in_routes);
 
             if current == to {
-                dbg!(in_routes);
                 return in_routes;
             }
 
@@ -144,10 +145,24 @@ pub fn part_two(input: &str) -> Option<u64> {
     // render_graph(&out_connections, "out.svg");
     // render_graph(&in_connections, "in.svg");
 
-    let routes = routes_between(&in_connections, &out_connections, "svr", "out");
-    dbg!(routes);
+    let result = dbg!(routes_between(
+        &in_connections,
+        &out_connections,
+        "svr",
+        "fft"
+    )) * dbg!(routes_between(
+        &in_connections,
+        &out_connections,
+        "fft",
+        "dac"
+    )) * dbg!(routes_between(
+        &in_connections,
+        &out_connections,
+        "dac",
+        "out"
+    ));
 
-    None
+    Some(result as u64)
 }
 
 #[cfg(test)]
