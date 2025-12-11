@@ -2,7 +2,6 @@ advent_of_code::solution!(11);
 use std::{
     collections::{HashMap, HashSet, hash_map::Entry},
     fs::File,
-    hash::Hash,
     io::Write,
     process::{Command, Stdio},
     vec,
@@ -103,100 +102,6 @@ fn flip_connections<'a>(
     }
 
     hm
-}
-
-fn routes_between(
-    in_connections: &HashMap<&str, Vec<&str>>,
-    out_connections: &HashMap<&str, Vec<&str>>,
-    from: &str,
-    to: &str,
-) -> usize {
-    dbg!(from);
-    let mut stack = out_connections.get(from).unwrap().to_vec();
-
-    let mut routes = HashMap::from([(from, 1)]);
-    for first in &stack {
-        for inc in in_connections.get(first).unwrap() {
-            routes.entry(inc).or_insert(0);
-        }
-    }
-
-    loop {
-        let mut next_stack = HashSet::new();
-        dbg!(&stack);
-        assert!(!stack.is_empty());
-        for current in stack {
-            let Some(in_routes) = in_connections
-                .get(current)
-                .unwrap()
-                .iter()
-                // i think this unwrap_or is wrong in the real input
-                .map(|inc| routes.get(inc))
-                .sum::<Option<_>>()
-            else {
-                // previous routes not fully calculated yet, skip it. another item will trigger it
-                // again
-                dbg!(current);
-                continue;
-            };
-
-            routes.insert(current, in_routes);
-
-            if current == to {
-                return in_routes;
-            }
-
-            for next in out_connections.get(current).unwrap() {
-                next_stack.insert(*next);
-            }
-        }
-        stack = next_stack.into_iter().collect_vec();
-    }
-}
-
-fn color_graph<'a>(
-    in_connections: &HashMap<&'a str, Vec<&'a str>>,
-    from: &'a str,
-) -> HashSet<&'a str> {
-    let mut stack = vec![from];
-    let mut visited = HashSet::from([from]);
-
-    while let Some(node) = stack.pop() {
-        for n in in_connections.get(node).unwrap_or(&Vec::new()) {
-            if visited.contains(n) {
-                continue;
-            }
-
-            visited.insert(n);
-            stack.push(n);
-        }
-    }
-
-    visited
-}
-
-// test assumption:
-// any node is at an exact depth, ie; nodes don't skip over layers
-// false
-#[allow(dead_code)]
-fn find_depth<'a>(
-    out_connections: &HashMap<&'a str, Vec<&'a str>>,
-    node: &'a str,
-    depth: usize,
-    visited: &mut HashMap<&'a str, usize>,
-) {
-    dbg!(depth);
-    for connection in out_connections.get(dbg!(node)).unwrap_or(&Vec::new()) {
-        match visited.entry(connection) {
-            Entry::Occupied(occupied_entry) => {
-                assert_eq!(*occupied_entry.get(), depth)
-            }
-            Entry::Vacant(vacant_entry) => {
-                vacant_entry.insert(depth);
-                find_depth(out_connections, connection, depth + 1, visited);
-            }
-        }
-    }
 }
 
 fn next_layer<'a>(connections: &HashMap<&'a str, Vec<&'a str>>, from: &'a str) -> Vec<&'a str> {
