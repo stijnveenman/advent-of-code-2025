@@ -4,6 +4,7 @@ use std::{
     fs::File,
     io::Write,
     process::{Command, Stdio},
+    vec,
 };
 
 #[allow(unused_imports)]
@@ -102,12 +103,38 @@ fn flip_connections<'a>(
     hm
 }
 
+fn routes_between(
+    in_connections: &HashMap<&str, Vec<&str>>,
+    out_connections: &HashMap<&str, Vec<&str>>,
+    from: &str,
+    to: &str,
+) {
+    let mut stack = vec![from];
+
+    loop {
+        let mut next_stack = HashSet::new();
+        for current in stack {
+            for next in out_connections.get(current).unwrap() {
+                if *next == to {
+                    println!("{}", to);
+                    return;
+                }
+
+                next_stack.insert(*next);
+            }
+        }
+        stack = next_stack.into_iter().collect_vec();
+    }
+}
+
 pub fn part_two(input: &str) -> Option<u64> {
     let out_connections = parse_input(input);
     let in_connections = flip_connections(&out_connections);
 
-    render_graph(&out_connections, "out.svg");
-    render_graph(&in_connections, "in.svg");
+    // render_graph(&out_connections, "out.svg");
+    // render_graph(&in_connections, "in.svg");
+
+    routes_between(&in_connections, &out_connections, "svr", "out");
 
     None
 }
