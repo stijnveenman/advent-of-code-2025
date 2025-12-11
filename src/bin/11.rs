@@ -1,8 +1,14 @@
 advent_of_code::solution!(11);
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    fs::File,
+    io::Write,
+    process::{Command, Stdio},
+};
 
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
+use petgraph::{Graph, dot::Dot};
 
 fn parse_input(input: &str) -> std::collections::HashMap<&str, std::vec::Vec<&str>> {
     input
@@ -28,6 +34,45 @@ fn path_count(connections: &HashMap<&str, Vec<&str>>, from: &str, to: &str) -> u
     next.iter()
         .map(|from| path_count(connections, from, to))
         .sum()
+}
+
+fn render_graph(connections: &HashMap<&str, Vec<&str>>) {
+    let mut deps = Graph::<&str, &str>::new();
+    let mut indexes = HashMap::new();
+
+    for connection in connections {
+        let from_index = *indexes
+            .entry(connection.0)
+            .or_insert_with(|| deps.add_node(connection.0));
+
+        for target in connection.1 {
+            let index = *indexes
+                .entry(target)
+                .or_insert_with(|| deps.add_node(target));
+
+            deps.add_edge(from_index, index, "");
+        }
+    }
+
+    let dot_string = Dot::with_config(&deps, &[]);
+
+    let mut dot = Command::new("dot")
+        .args(["-Tsvg"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+
+    dot.stdin
+        .take()
+        .unwrap()
+        .write_all(dot_string.to_string().as_bytes())
+        .unwrap();
+
+    let dot_output = dot.wait_with_output().unwrap();
+
+    let mut file = File::create("output.svg").unwrap();
+    file.write_all(&dot_output.stdout).unwrap();
 }
 
 fn path_count_containing(
@@ -61,18 +106,9 @@ pub fn part_one(input: &str) -> Option<u64> {
 pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
 
-    dbg!(path_count_containing(
-        &input,
-        "fft",
-        "dac",
-        &mut HashMap::new(),
-    ));
-    Some(path_count_containing(
-        &input,
-        "dac",
-        "out",
-        &mut HashMap::new(),
-    ))
+    render_graph(&input);
+
+    None
 }
 
 #[cfg(test)]
