@@ -1,6 +1,6 @@
 advent_of_code::solution!(11);
 use std::{
-    collections::{HashMap, HashSet, hash_map::Entry},
+    collections::{HashMap, HashSet, VecDeque, hash_map::Entry},
     fs::File,
     io::Write,
     process::{Command, Stdio},
@@ -105,10 +105,11 @@ fn flip_connections<'a>(
 }
 
 fn next_layer<'a>(connections: &HashMap<&'a str, Vec<&'a str>>, from: &'a str) -> Vec<&'a str> {
-    let mut stack = connections.get(from).unwrap().to_vec();
+    let stack = connections.get(from).unwrap().to_vec();
+    let mut stack = VecDeque::from(stack);
     let mut layer = HashSet::new();
 
-    while let Some(node) = stack.pop() {
+    while let Some(node) = stack.pop_front() {
         if node == "fft" || node == "dac" || node == "svr" {
             return vec![node];
         }
