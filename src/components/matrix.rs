@@ -96,7 +96,7 @@ impl Matrix {
     }
 
     pub fn solve(&mut self) -> Option<usize> {
-        println!("{}", self);
+        // println!("{}", self);
 
         let Some(row) = self.first_non_empty() else {
             return Some(0);
@@ -117,7 +117,10 @@ impl Matrix {
 
             return self.solve().map(|v| v + (count as usize));
         }
-        assert!(!unknowns.is_empty());
+
+        if unknowns.is_empty() {
+            return None;
+        }
 
         let mut min = None;
 
@@ -125,16 +128,19 @@ impl Matrix {
             let mut attempt = 0;
             loop {
                 let mut matrix = self.clone();
+                // println!("{unknown} {attempt}");
 
                 matrix.back_substitute(unknown, attempt);
 
-                let Some(result) = matrix.solve() else {
-                    break;
+                if let Some(result) = matrix.solve() {
+                    min = Some(min.unwrap_or(usize::MAX).min((attempt as usize) + result));
                 };
 
-                min = Some(min.unwrap_or(usize::MAX).min((attempt as usize) + result));
-
                 attempt += 1;
+
+                if attempt > 100 {
+                    break;
+                }
             }
         }
 
