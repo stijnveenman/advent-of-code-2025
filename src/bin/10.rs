@@ -103,13 +103,14 @@ pub fn part_two(input: &str) -> Option<u64> {
 
     let result: usize = input
         .into_iter()
-        .map(|(_, buttons, joltage)| {
+        .enumerate()
+        .map(|(idx, (_, buttons, joltage))| {
             let matrix = Matrix::from(joltage.iter().map(|v| *v as isize).collect_vec());
             let mut buttons = buttons_to_matrix(buttons, joltage.len());
             buttons.append(matrix);
             buttons.row_echelon();
 
-            println!("{}", buttons);
+            println!("idx: {idx}\n{}", buttons);
             dbg!(buttons.solve().unwrap())
         })
         .sum();
@@ -131,5 +132,14 @@ mod tests {
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(33));
+    }
+
+    #[test]
+    fn row_echelon() {
+        let result = part_two(&advent_of_code::template::read_file_part(
+            "examples", DAY, 2,
+        ));
+        dbg!(result);
+        assert!(result.is_some());
     }
 }

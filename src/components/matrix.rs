@@ -1,4 +1,4 @@
-use std::{fmt::Display, option::Option, vec::Vec};
+use std::{fmt::Display, ops::Rem, option::Option, vec::Vec};
 
 use itertools::Itertools;
 
@@ -15,7 +15,17 @@ impl Matrix {
             .iter()
             .enumerate()
             .skip(n)
-            .find(|v| *v.1.get(n).unwrap() != 0)
+            .find(|(_, v)| {
+                let Some(first) = v.iter().find(|v| **v != 0) else {
+                    return false;
+                };
+
+                if *v.get(n).unwrap() == 0 {
+                    return false;
+                }
+
+                true
+            })
             .map(|v| v.0)
     }
 
@@ -70,19 +80,40 @@ impl Matrix {
     }
 
     fn row_echelon_row(&mut self, m: usize) {
+        println!("{}", self);
         if let Some(pivot) = self.pivot_index(m) {
             self.switch(m, pivot);
             if self.get(m, m) < 0 {
                 self.flip_signs(m);
             }
+        };
 
-            for i in m + 1..self.m() {
-                while self.get(m, i) > 0 {
-                    self.sub(i, m);
-                }
-                while self.get(m, i) < 0 {
-                    self.add(i, m);
-                }
+        while self.get(m, m) > 1 {
+            let Some(rhs) = self
+                .0
+                .iter()
+                .enumerate()
+                .skip(m + 1)
+                .find(|(_, v)| v[m] != 0)
+            else {
+                break;
+            };
+
+            println!("{self}");
+            dbg!(m, rhs.0);
+            if rhs.1[m] > 0 {
+                self.sub(m, rhs.0);
+            } else {
+                self.add(m, rhs.0);
+            }
+        }
+
+        for i in m + 1..self.m() {
+            while self.get(m, i) > 0 {
+                self.sub(i, m);
+            }
+            while self.get(m, i) < 0 {
+                self.add(i, m);
             }
         }
     }
