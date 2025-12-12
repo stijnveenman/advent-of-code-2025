@@ -1,7 +1,8 @@
-use std::fmt::Display;
+use std::{fmt::Display, option::Option, vec::Vec};
 
 use itertools::Itertools;
 
+#[derive(Clone)]
 pub struct Matrix(Vec<Vec<isize>>);
 
 impl Matrix {
@@ -90,17 +91,81 @@ impl Matrix {
         self.0.len()
     }
 
-    fn n(&self) -> usize {
-        self.0.first().unwrap().len()
+    fn first_non_empty(&self) -> Option<&Vec<isize>> {
+        self.0.iter().rev().find(|v| v.iter().any(|n| *n != 0))
+    }
+
+    pub fn solve(&mut self) -> Option<usize> {
+        println!("{}", self);
+
+        let Some(row) = self.first_non_empty() else {
+            return Some(0);
+        };
+
+        let unknowns = find_unknowns(row);
+        // dbg!(&unknowns);
+
+        if unknowns.len() == 1 {
+            let unknown = *unknowns.first().unwrap();
+            let x_count = *row.get(unknown).unwrap();
+            let count = *row.last().unwrap() / x_count;
+            if count < 0 {
+                return None;
+            }
+
+            self.back_substitute(unknown, count);
+
+            return self.solve().map(|v| v + (count as usize));
+        }
+        assert!(!unknowns.is_empty());
+
+        let mut min = None;
+
+        for unknown in unknowns {
+            let mut attempt = 0;
+            loop {
+                let mut matrix = self.clone();
+
+                matrix.back_substitute(unknown, attempt);
+
+                let Some(result) = matrix.solve() else {
+                    break;
+                };
+
+                min = Some(min.unwrap_or(usize::MAX).min((attempt as usize) + result));
+
+                attempt += 1;
+            }
+        }
+
+        min
+    }
+
+    pub fn back_substitute(&mut self, n: usize, rhs: isize) {
+        for row in &mut self.0 {
+            let reff = row.get_mut(n).unwrap();
+            let count = *reff;
+            *reff = 0;
+
+            *row.last_mut().unwrap() -= count * rhs;
+        }
     }
 
     pub fn row_echelon(&mut self) {
         let nm = self.0.len().min(self.0.first().unwrap().len());
         for m in 0..nm {
             self.row_echelon_row(m);
-            println!("{}", self);
         }
     }
+}
+
+fn find_unknowns(row: &[isize]) -> Vec<usize> {
+    let last = row.len() - 1;
+    row.iter()
+        .enumerate()
+        .filter(|v| *v.1 != 0 && v.0 != last)
+        .map(|v| v.0)
+        .collect_vec()
 }
 
 impl From<Vec<isize>> for Matrix {

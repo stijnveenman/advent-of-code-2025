@@ -101,16 +101,20 @@ fn buttons_to_matrix(buttons: Vec<Vec<usize>>, m: usize) -> Matrix {
 pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
 
-    input.into_iter().for_each(|(_, buttons, joltage)| {
-        let matrix = Matrix::from(joltage.iter().map(|v| *v as isize).collect_vec());
-        let mut buttons = buttons_to_matrix(buttons, joltage.len());
-        buttons.append(matrix);
-        println!("-----\n{}", buttons);
-        buttons.row_echelon();
-        println!("{}", buttons);
-    });
+    let result: usize = input
+        .into_iter()
+        .map(|(_, buttons, joltage)| {
+            let matrix = Matrix::from(joltage.iter().map(|v| *v as isize).collect_vec());
+            let mut buttons = buttons_to_matrix(buttons, joltage.len());
+            buttons.append(matrix);
+            buttons.row_echelon();
 
-    None
+            println!("{}", buttons);
+            dbg!(buttons.solve().unwrap())
+        })
+        .sum();
+
+    Some(result as u64)
 }
 
 #[cfg(test)]
