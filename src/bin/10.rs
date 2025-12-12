@@ -1,9 +1,6 @@
 advent_of_code::solution!(10);
 
-use std::{
-    collections::{HashMap, HashSet},
-    sync::atomic::{AtomicUsize, Ordering},
-};
+use std::collections::HashSet;
 
 use advent_of_code::components::matrix::Matrix;
 #[allow(unused_imports)]
@@ -105,11 +102,10 @@ pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
 
     input.into_iter().for_each(|(_, buttons, joltage)| {
-        let matrix = Matrix::from(&joltage[..]);
+        let matrix = Matrix::from(joltage.iter().map(|v| *v as isize).collect_vec());
         let mut buttons = buttons_to_matrix(buttons, joltage.len());
-        println!("-----");
-        println!("{}", matrix);
-        println!("{}", buttons);
+        buttons.append(matrix);
+        println!("-----\n{}", buttons);
         buttons.row_echelon();
         println!("{}", buttons);
     });
