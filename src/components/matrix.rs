@@ -80,7 +80,6 @@ impl Matrix {
     }
 
     fn row_echelon_row(&mut self, m: usize) {
-        println!("{}", self);
         if let Some(pivot) = self.pivot_index(m) {
             self.switch(m, pivot);
             if self.get(m, m) < 0 {
@@ -99,8 +98,6 @@ impl Matrix {
                 break;
             };
 
-            println!("{self}");
-            dbg!(m, rhs.0);
             if rhs.1[m] > 0 {
                 self.sub(m, rhs.0);
             } else {
@@ -223,7 +220,7 @@ impl From<Vec<Vec<isize>>> for Matrix {
 impl Display for Matrix {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for line in &self.0 {
-            writeln!(f, "{:?}", line)?;
+            writeln!(f, "{}", line.iter().join(" "))?;
         }
 
         Ok(())

@@ -108,9 +108,9 @@ pub fn part_two(input: &str) -> Option<u64> {
             let matrix = Matrix::from(joltage.iter().map(|v| *v as isize).collect_vec());
             let mut buttons = buttons_to_matrix(buttons, joltage.len());
             buttons.append(matrix);
-            buttons.row_echelon();
-
             println!("idx: {idx}\n{}", buttons);
+
+            buttons.row_echelon();
             dbg!(buttons.solve().unwrap())
         })
         .sum();
