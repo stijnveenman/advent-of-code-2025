@@ -41,10 +41,14 @@ fn line_contains(line: &(Point, Point), point: &Point) -> bool {
     (x_min..=x_max).contains(&point.x) && (y_min..=y_max).contains(&point.y)
 }
 
-pub fn draw(l_bound: Point, r_bound: Point, lines: &[(Point, Point)]) {
+pub fn draw(l_bound: Point, r_bound: Point, lines: &[(Point, Point)], points: &[Point]) {
     let grid: HashGrid<'_, ()> = HashGrid::with_bounds(l_bound, r_bound);
 
     let s = grid.draw(|point, _| {
+        if points.contains(point) {
+            return "O".into();
+        }
+
         if lines.iter().any(|line| line.0 == *point) {
             return "#".into();
         }
@@ -82,9 +86,11 @@ pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
     let lines = lines(&input);
 
-    draw(Point::ZERO, Point::new(13, 8), &lines);
+    draw(Point::ZERO, Point::new(13, 8), &lines, &[]);
 
     let mut max = u64::MIN;
+    let mut max_points = (Point::ZERO, Point::ZERO);
+
     for l in 0..input.len() {
         for r in l + 1..input.len() {
             let left = input[l];
@@ -94,9 +100,20 @@ pub fn part_two(input: &str) -> Option<u64> {
             // let o2 = Point::new(right.x, left.y);
 
             let area = (left - right).abs() + Point::new(1, 1);
-            max = max.max((area.x.abs() * area.y.abs()) as u64);
+            let area = (area.x.abs() * area.y.abs()) as u64;
+            if area > max {
+                max = area;
+                max_points = (left, right);
+            }
         }
     }
+
+    draw(
+        Point::ZERO,
+        Point::new(13, 8),
+        &lines,
+        &[max_points.0, max_points.1],
+    );
 
     Some(max)
 }
