@@ -16,7 +16,7 @@ impl Matrix {
             .enumerate()
             .skip(n)
             .find(|(_, v)| {
-                let Some(first) = v.iter().find(|v| **v != 0) else {
+                let Some(_first) = v.iter().find(|v| **v != 0) else {
                     return false;
                 };
 
