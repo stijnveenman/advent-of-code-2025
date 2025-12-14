@@ -1,7 +1,5 @@
 advent_of_code::solution!(9);
 
-use std::cmp::Ordering;
-
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
 #[allow(unused_imports)]
@@ -23,31 +21,42 @@ fn parse_input(input: &str) -> Vec<Point> {
 
 fn lines(points: &[Point]) -> Vec<(Point, Point)> {
     let mut v = vec![];
-    let mut direction = Ordering::Less;
 
     for i in 0..points.len() {
         let l = points[i];
         let r = points[(i + 1) % points.len()];
 
-        if l.x == r.x {
-            let min = l.y.min(r.y);
-            let mut max = l.y.max(r.y);
-
-            let new_direction = l.y.cmp(&r.y);
-
-            if direction == new_direction {
-                max -= 1;
-            }
-
-            direction = new_direction;
-
-            let line = (Point::new(l.x, min), Point::new(l.x, max));
-            v.push(line);
-        } else {
-            v.push((l, r));
-        }
+        v.push((l, r));
     }
     v
+}
+
+fn line_contains(line: &(Point, Point), point: &Point) -> bool {
+    let x_min = line.0.x.min(line.1.x);
+    let x_max = line.0.x.max(line.1.x);
+
+    let y_min = line.0.y.min(line.1.y);
+    let y_max = line.0.y.max(line.1.y);
+
+    (x_min..=x_max).contains(&point.x) && (y_min..=y_max).contains(&point.y)
+}
+
+pub fn draw(l_bound: Point, r_bound: Point, lines: &[(Point, Point)]) {
+    let grid: HashGrid<'_, ()> = HashGrid::with_bounds(l_bound, r_bound);
+
+    let s = grid.draw(|point, _| {
+        if lines.iter().any(|line| line.0 == *point) {
+            return "#".into();
+        }
+
+        if lines.iter().any(|line| line_contains(line, point)) {
+            return "X".into();
+        }
+
+        ".".into()
+    });
+
+    println!("{s}");
 }
 
 pub fn part_one(input: &str) -> Option<u64> {
@@ -69,69 +78,11 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(max)
 }
 
-fn abs_contains(from: isize, to: isize, y: isize) -> bool {
-    let min = from.min(to);
-    let max = from.max(to);
-    (min..=max).contains(&y)
-}
-
-fn is_inside(vertical: &[&(Point, Point)], point: Point) -> bool {
-    let mut crosses = 0;
-    for line in vertical {
-        // horizontal line
-        if line.0.y == line.1.y {
-            // println!("{line:?}");
-            if line.0.y == point.y && abs_contains(line.0.x, line.1.x, point.x) {
-                return true;
-            } else {
-                continue;
-            }
-        }
-
-        if line.0.x == point.x && abs_contains(line.0.y, line.1.y, point.y) {
-            return true;
-        }
-
-        if line.0.x > point.x {
-            continue;
-        }
-
-        if abs_contains(line.0.y, line.1.y, point.y) {
-            crosses += 1;
-        }
-    }
-
-    crosses % 2 == 1
-}
-
 pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
     let lines = lines(&input);
-    let vertical = lines.iter().collect_vec();
 
-    // let mut c = HashGrid::with_bounds(Point::new(0, 0), Point::new(13, 8));
-    // c.set(&Point::UP, 2);
-    // let f = c.draw(|p, c| {
-    //     // if p == &Point::new(2, 5) {
-    //     //     return "?".to_string();
-    //     // }
-    //
-    //     if lines.iter().any(|line| {
-    //         line.0.x == p.x && abs_contains(line.0.y, line.1.y, p.y)
-    //         // || line.0.y == p.y && abs_contains(line.0.x, line.1.x, p.x)
-    //     }) {
-    //         "#".to_string()
-    //     } else if lines.iter().any(|line| {
-    //         // line.0.x == p.x && abs_contains(line.0.y, line.1.y, p.y)
-    //         line.0.y == p.y && abs_contains(line.0.x, line.1.x, p.x)
-    //     }) {
-    //         "O".to_string()
-    //     } else {
-    //         ".".to_string()
-    //     }
-    // });
-    // println!("{f}");
-    // panic!();
+    draw(Point::ZERO, Point::new(13, 8), &lines);
 
     let mut max = u64::MIN;
     for l in 0..input.len() {
@@ -139,12 +90,8 @@ pub fn part_two(input: &str) -> Option<u64> {
             let left = input[l];
             let right = input[r];
 
-            let o1 = Point::new(left.x, right.y);
-            let o2 = Point::new(right.x, left.y);
-
-            if !is_inside(&vertical, o1) || !is_inside(&vertical, o2) {
-                continue;
-            }
+            // let o1 = Point::new(left.x, right.y);
+            // let o2 = Point::new(right.x, left.y);
 
             let area = (left - right).abs() + Point::new(1, 1);
             max = max.max((area.x.abs() * area.y.abs()) as u64);
