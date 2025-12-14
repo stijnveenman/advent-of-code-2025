@@ -1,5 +1,9 @@
 advent_of_code::solution!(9);
 
+use std::io::Read;
+use std::thread;
+use std::time::Duration;
+
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
 #[allow(unused_imports)]
@@ -63,6 +67,45 @@ pub fn draw(l_bound: Point, r_bound: Point, lines: &[(Point, Point)], points: &[
     println!("{s}");
 }
 
+fn into_draw_mode(
+    mut l_bound: Point,
+    mut r_bound: Point,
+    lines: &[(Point, Point)],
+    points: &[Point],
+) {
+    let stdin = std::io::stdin();
+
+    loop {
+        print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+        draw(l_bound, r_bound, lines, points);
+
+        let mut line = String::new();
+        stdin.read_line(&mut line).unwrap();
+
+        for c in line.chars() {
+            match c {
+                'h' => {
+                    l_bound += Point::LEFT;
+                    r_bound += Point::LEFT;
+                }
+                'j' => {
+                    l_bound += Point::DOWN;
+                    r_bound += Point::DOWN;
+                }
+                'k' => {
+                    l_bound += Point::UP;
+                    r_bound += Point::UP;
+                }
+                'l' => {
+                    l_bound += Point::RIGHT;
+                    r_bound += Point::RIGHT;
+                }
+                _ => {}
+            }
+        }
+    }
+}
+
 pub fn part_one(input: &str) -> Option<u64> {
     let input = parse_input(input);
 
@@ -108,7 +151,7 @@ pub fn part_two(input: &str) -> Option<u64> {
         }
     }
 
-    draw(
+    into_draw_mode(
         Point::ZERO,
         Point::new(13, 8),
         &lines,
