@@ -1,9 +1,5 @@
 advent_of_code::solution!(9);
 
-use std::io::Read;
-use std::thread;
-use std::time::Duration;
-
 #[allow(unused_imports)]
 use advent_of_code::prelude::*;
 #[allow(unused_imports)]
@@ -33,6 +29,13 @@ fn lines(points: &[Point]) -> Vec<(Point, Point)> {
         v.push((l, r));
     }
     v
+}
+
+fn mm_range(lhs: isize, rhs: isize) -> std::ops::RangeInclusive<isize> {
+    let min = lhs.min(rhs);
+    let max = lhs.max(rhs);
+
+    min..=max
 }
 
 fn line_contains(line: &(Point, Point), point: &Point) -> bool {
@@ -125,9 +128,76 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(max)
 }
 
+fn is_vertical(line: &(Point, Point)) -> bool {
+    line.0.x == line.1.x
+}
+
+fn is_horizontal(line: &(Point, Point)) -> bool {
+    line.0.y == line.1.y
+}
+
+fn is_horizontal_intersection(lhs: &(Point, Point), rhs: &(Point, Point)) -> bool {
+    assert!(is_horizontal(lhs));
+    assert!(is_vertical(rhs));
+
+    if !mm_range(lhs.0.x, lhs.1.x).contains(&rhs.0.x) {
+        return false;
+    }
+
+    if !mm_range(rhs.0.y, rhs.1.y).contains(&lhs.0.y) {
+        return false;
+    }
+
+    true
+}
+
+fn is_vertical_intersection(lhs: &(Point, Point), rhs: &(Point, Point)) -> bool {
+    assert!(is_vertical(lhs));
+    assert!(is_horizontal(rhs));
+
+    if !mm_range(lhs.0.y, lhs.1.y).contains(&rhs.0.y) {
+        return false;
+    }
+
+    if !mm_range(rhs.0.x, rhs.1.x).contains(&lhs.0.x) {
+        return false;
+    }
+
+    true
+}
+
+fn is_valid(
+    horizontal: &[(Point, Point)],
+    vertical: &[(Point, Point)],
+    square: (Point, Point),
+) -> bool {
+    let (mut left, mut right) = square;
+    left += (right - left).normal();
+    right += (left - right).normal();
+    let o1 = Point::new(left.x, right.y);
+    let o2 = Point::new(right.x, left.y);
+
+    if horizontal.iter().any(|line| {
+        is_horizontal_intersection(line, &(o2, right))
+            || is_horizontal_intersection(line, &(left, o1))
+    }) {
+        return false;
+    }
+
+    if vertical.iter().any(|line| {
+        is_vertical_intersection(line, &(left, o2)) || is_vertical_intersection(line, &(o1, right))
+    }) {
+        return false;
+    }
+
+    true
+}
+
 pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
     let lines = lines(&input);
+    let horizontal = lines.iter().cloned().filter(is_horizontal).collect_vec();
+    let vertical = lines.iter().cloned().filter(is_vertical).collect_vec();
 
     draw(Point::ZERO, Point::new(13, 8), &lines, &[]);
 
@@ -139,8 +209,9 @@ pub fn part_two(input: &str) -> Option<u64> {
             let left = input[l];
             let right = input[r];
 
-            // let o1 = Point::new(left.x, right.y);
-            // let o2 = Point::new(right.x, left.y);
+            if !is_valid(&horizontal, &vertical, (left, right)) {
+                continue;
+            }
 
             let area = (left - right).abs() + Point::new(1, 1);
             let area = (area.x.abs() * area.y.abs()) as u64;
@@ -151,12 +222,46 @@ pub fn part_two(input: &str) -> Option<u64> {
         }
     }
 
-    into_draw_mode(
+    let (mut left, mut right) = max_points;
+    left += (right - left).normal();
+    right += (left - right).normal();
+    dbg!(left, right);
+    let o1 = Point::new(left.x, right.y);
+    let o2 = Point::new(right.x, left.y);
+
+    println!();
+    let mut intersections = horizontal
+        .iter()
+        .filter(|line| {
+            is_horizontal_intersection(line, &(o2, right))
+                || is_horizontal_intersection(line, &(left, o1))
+        })
+        .cloned()
+        .collect_vec();
+
+    intersections.extend(
+        vertical
+            .iter()
+            .filter(|line| {
+                is_vertical_intersection(line, &(left, o2))
+                    || is_vertical_intersection(line, &(o1, right))
+            })
+            .cloned()
+            .collect_vec(),
+    );
+
+    draw(
         Point::ZERO,
         Point::new(13, 8),
-        &lines,
-        &[max_points.0, max_points.1],
+        &intersections,
+        &[left, right, o1, o2],
     );
+    // into_draw_mode(
+    //     Point::ZERO,
+    //     Point::new(13, 8),
+    //     &lines,
+    //     &[max_points.0, max_points.1],
+    // );
 
     Some(max)
 }

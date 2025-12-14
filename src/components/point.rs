@@ -39,6 +39,13 @@ impl Point {
         Point { x, y }
     }
 
+    pub fn normal(&self) -> Point {
+        Point {
+            x: self.x.checked_div(self.x.abs()).unwrap_or(0),
+            y: self.y.checked_div(self.y.abs()).unwrap_or(0),
+        }
+    }
+
     /// Parses a Point neperated by a seperator
     ///
     /// # Examples
