@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use advent_of_code::prelude::*;
 use advent_of_code::{
     components::Point,
-    grid::{self, Grid, char_grid::CharGrid},
+    grid::{Grid, char_grid::CharGrid},
 };
 
 fn parse_input(input: &str) -> advent_of_code::grid::char_grid::CharGrid {

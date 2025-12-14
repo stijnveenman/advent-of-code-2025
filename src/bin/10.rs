@@ -103,8 +103,7 @@ pub fn part_two(input: &str) -> Option<u64> {
 
     let result: usize = input
         .into_iter()
-        .enumerate()
-        .map(|(idx, (_, buttons, joltage))| {
+        .map(|(_, buttons, joltage)| {
             let matrix = Matrix::from(joltage.iter().map(|v| *v as isize).collect_vec());
             let mut buttons = buttons_to_matrix(buttons, joltage.len());
             buttons.append(matrix);

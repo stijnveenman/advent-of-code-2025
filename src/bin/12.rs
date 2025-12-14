@@ -52,9 +52,7 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(result as u64)
 }
 
-pub fn part_two(input: &str) -> Option<u64> {
-    let input = parse_input(input);
-
+pub fn part_two(_input: &str) -> Option<u64> {
     None
 }
 

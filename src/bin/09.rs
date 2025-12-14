@@ -73,6 +73,7 @@ pub fn draw(l_bound: Point, r_bound: Point, lines: &[(Point, Point)], points: &[
     println!("{s}");
 }
 
+#[allow(dead_code)]
 fn into_draw_mode(
     mut l_bound: Point,
     mut r_bound: Point,
@@ -213,11 +214,7 @@ pub fn part_two(input: &str) -> Option<u64> {
     let horizontal = lines.iter().cloned().filter(is_horizontal).collect_vec();
     let vertical = lines.iter().cloned().filter(is_vertical).collect_vec();
 
-    draw(Point::ZERO, Point::new(13, 8), &lines, &[]);
-
     let mut max = u64::MIN;
-    let mut max_points = (Point::ZERO, Point::ZERO);
-
     for l in 0..input.len() {
         for r in l + 1..input.len() {
             let left = input[l];
@@ -231,39 +228,9 @@ pub fn part_two(input: &str) -> Option<u64> {
             let area = (area.x.abs() * area.y.abs()) as u64;
             if area > max {
                 max = area;
-                max_points = (left, right);
             }
         }
     }
-
-    let (mut left, mut right) = (Point::new(9, 5), Point::new(2, 3));
-    let ray = (Point::new(0, left.y), left + Point::LEFT);
-    left += (right - left).normal();
-    right += (left - right).normal();
-    let o1 = Point::new(left.x, right.y);
-    let o2 = Point::new(right.x, left.y);
-
-    println!();
-    let mut intersections = vertical
-        .iter()
-        .filter(|line| is_vertical_intersection(line, &ray))
-        .cloned()
-        .collect_vec();
-
-    intersections.push(ray);
-
-    draw(
-        Point::ZERO,
-        Point::new(13, 8),
-        &intersections,
-        &[left, right, o1, o2],
-    );
-    // into_draw_mode(
-    //     Point::ZERO,
-    //     Point::new(13, 8),
-    //     &lines,
-    //     &[max_points.0, max_points.1],
-    // );
 
     Some(max)
 }
