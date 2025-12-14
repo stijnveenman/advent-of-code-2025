@@ -75,37 +75,37 @@ impl Matrix {
             .for_each(|v| *v = -*v);
     }
 
+    fn scale(&mut self, m: usize, rhs: isize) {
+        self.0
+            .get_mut(m)
+            .unwrap()
+            .iter_mut()
+            .for_each(|v| *v *= rhs);
+    }
+
     fn get(&self, n: usize, m: usize) -> isize {
         *self.0.get(m).unwrap().get(n).unwrap()
     }
 
     fn row_echelon_row(&mut self, m: usize) {
-        if let Some(pivot) = self.pivot_index(m) {
-            self.switch(m, pivot);
-            if self.get(m, m) < 0 {
-                self.flip_signs(m);
-            }
+        let Some(pivot) = self.pivot_index(m) else {
+            return;
         };
 
-        while self.get(m, m) > 1 {
-            let Some(rhs) = self
-                .0
-                .iter()
-                .enumerate()
-                .skip(m + 1)
-                .find(|(_, v)| v[m] != 0)
-            else {
-                break;
-            };
-
-            if rhs.1[m] > 0 {
-                self.sub(m, rhs.0);
-            } else {
-                self.add(m, rhs.0);
-            }
+        self.switch(m, pivot);
+        if self.get(m, m) < 0 {
+            self.flip_signs(m);
         }
 
+        let p_value = self.get(m, m);
+
         for i in m + 1..self.m() {
+            let i_value = self.get(m, i);
+
+            if i_value.rem(p_value) != 0 {
+                self.scale(i, p_value);
+            }
+
             while self.get(m, i) > 0 {
                 self.sub(i, m);
             }
