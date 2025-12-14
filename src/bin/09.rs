@@ -56,7 +56,10 @@ pub fn draw(l_bound: Point, r_bound: Point, lines: &[(Point, Point)], points: &[
             return "O".into();
         }
 
-        if lines.iter().any(|line| line.0 == *point) {
+        if lines
+            .iter()
+            .any(|line| line.0 == *point || line.1 == *point)
+        {
             return "#".into();
         }
 
@@ -190,6 +193,17 @@ fn is_valid(
         return false;
     }
 
+    let ray = (Point::new(0, left.y), left + Point::LEFT);
+    if vertical
+        .iter()
+        .filter(|line| is_vertical_intersection(line, &ray))
+        .count()
+        % 2
+        == 0
+    {
+        return false;
+    }
+
     true
 }
 
@@ -222,33 +236,21 @@ pub fn part_two(input: &str) -> Option<u64> {
         }
     }
 
-    let (mut left, mut right) = max_points;
+    let (mut left, mut right) = (Point::new(9, 5), Point::new(2, 3));
+    let ray = (Point::new(0, left.y), left + Point::LEFT);
     left += (right - left).normal();
     right += (left - right).normal();
-    dbg!(left, right);
     let o1 = Point::new(left.x, right.y);
     let o2 = Point::new(right.x, left.y);
 
     println!();
-    let mut intersections = horizontal
+    let mut intersections = vertical
         .iter()
-        .filter(|line| {
-            is_horizontal_intersection(line, &(o2, right))
-                || is_horizontal_intersection(line, &(left, o1))
-        })
+        .filter(|line| is_vertical_intersection(line, &ray))
         .cloned()
         .collect_vec();
 
-    intersections.extend(
-        vertical
-            .iter()
-            .filter(|line| {
-                is_vertical_intersection(line, &(left, o2))
-                    || is_vertical_intersection(line, &(o1, right))
-            })
-            .cloned()
-            .collect_vec(),
-    );
+    intersections.push(ray);
 
     draw(
         Point::ZERO,
